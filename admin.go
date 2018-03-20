@@ -606,6 +606,10 @@ func (adm Admin) AddResource(
 	is.SetSimpleField("REBALANCE_MODE", strings.ToUpper("SEMI_AUTO"))
 	is.SetStateModelDef(stateModel)
 
+	// empty external view for new resource
+	externalView := fmt.Sprintf("/%s/EXTERNALVIEW/%s", cluster, resource)
+	adm.zkClient.CreateEmptyNode(externalView)
+
 	accessor := newDataAccessor(adm.zkClient, builder)
 	accessor.createMsg(isPath, is)
 
@@ -837,6 +841,53 @@ func (adm Admin) DropInstance(cluster string, instance string) error {
 	fmt.Printf("/%s/%s deleted from zookeeper.\n", cluster, instance)
 
 	return err
+}
+
+func (adm Admin) ListExternalView(cluster string) (string, error) {
+	kb := KeyBuilder{cluster}
+	path := kb.externalView()
+	return adm.getPathData(cluster, path)
+}
+
+func (adm Admin) ListExternalViewForResource(cluster string, resource string) (string, error) {
+	kb := KeyBuilder{cluster}
+	path := kb.externalViewForResource(resource)
+	return adm.getPathData(cluster, path)
+}
+
+func (adm Admin) ListIdealState(cluster string) (string, error) {
+	kb := KeyBuilder{cluster}
+	path := kb.idealStates()
+	return adm.getPathData(cluster, path)
+}
+
+func (adm Admin) ListIdealStateForResource(cluster string, resource string) (string, error) {
+	kb := KeyBuilder{cluster}
+	path := kb.idealStateForResource(resource)
+	return adm.getPathData(cluster, path)
+}
+
+func (adm Admin) getPathData(cluster string, path string) (string, error) {
+	// make sure the cluster is already setup
+	if ok, err := adm.isClusterSetup(cluster); !ok || err != nil {
+		return "", ErrClusterNotSetup
+	}
+
+	// make sure path exists
+	if exists, _, err := adm.zkClient.Exists(path); !exists || err != nil {
+		if !exists {
+			return "", ErrResourceNotExists
+		}
+
+		return "", err
+	}
+
+	data, _, err := adm.zkClient.Get(path)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data[:]), nil
 }
 
 func (adm Admin) isClusterSetup(cluster string) (bool, error) {

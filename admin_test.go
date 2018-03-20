@@ -271,6 +271,120 @@ func (s *AdminTestSuite) TestEnableDisableResource() {
 	}
 }
 
+func (s *AdminTestSuite) TestListExternalViewForResource(){
+	t := s.T()
+
+	now := time.Now().Local()
+	cluster := "AdminTest_TestListExternalViewForResource_" + now.Format("20060102150405")
+	resource := "resource"
+
+	// expect error if cluster not setup
+	if _, err := s.Admin.ListExternalViewForResource(cluster, resource); err != ErrClusterNotSetup {
+		t.Error("must setup cluster before ListExternalViewForResource")
+	}
+
+	s.Admin.AddCluster(cluster, false)
+	defer s.Admin.DropCluster(cluster)
+
+	// fail when resource doesn't exist
+	if _, err := s.Admin.ListExternalViewForResource(cluster, resource); err != ErrResourceNotExists {
+		t.Error("expect ErrResourceNotExists")
+	}
+
+	// expect pass
+	if err := s.Admin.AddResource(cluster, "resource", 32, "MasterSlave"); err != nil {
+		t.Error("fail addResource")
+	}
+	if _, err := s.Admin.ListExternalViewForResource(cluster, resource); err != nil {
+		t.Error(err)
+	}
+
+	// disable rosource
+	if err := s.Admin.DisableResource(cluster, resource); err != nil {
+		t.Error("expect OK")
+	}
+	// should still be okay after disabling resource
+	if _, err := s.Admin.ListExternalViewForResource(cluster, resource); err != nil {
+		t.Error(err)
+	}
+}
+
+func (s *AdminTestSuite) TestListExternalView(){
+	t := s.T()
+
+	now := time.Now().Local()
+	cluster := "AdminTest_TestListExternalView_" + now.Format("20060102150405")
+
+	// expect error if cluster not setup
+	if _, err := s.Admin.ListExternalView(cluster); err != ErrClusterNotSetup {
+		t.Error("must setup cluster before ListExternalView")
+	}
+
+	s.Admin.AddCluster(cluster, false)
+	defer s.Admin.DropCluster(cluster)
+
+	if _, err := s.Admin.ListExternalView(cluster); err != nil {
+		t.Error("expect OK")
+	}
+}
+
+func (s *AdminTestSuite) TestListIdealState(){
+	t := s.T()
+
+	now := time.Now().Local()
+	cluster := "AdminTest_TestListIdealState_" + now.Format("20060102150405")
+
+	// expect error if cluster not setup
+	if _, err := s.Admin.ListIdealState(cluster); err != ErrClusterNotSetup {
+		t.Error("must setup cluster before ListIdealState")
+	}
+
+	s.Admin.AddCluster(cluster, false)
+	defer s.Admin.DropCluster(cluster)
+
+	if _, err := s.Admin.ListIdealState(cluster); err != nil {
+		t.Error("expect OK")
+	}
+}
+
+func (s *AdminTestSuite) TestListIdealStateForResource(){
+	t := s.T()
+
+	now := time.Now().Local()
+	cluster := "AdminTest_TestListIdealStateForResource_" + now.Format("20060102150405")
+	resource := "resource"
+
+	// expect error if cluster not setup
+	if _, err := s.Admin.ListIdealStateForResource(cluster, resource); err != ErrClusterNotSetup {
+		t.Error("must setup cluster before ListIdealStateForResource")
+	}
+
+	s.Admin.AddCluster(cluster, false)
+	defer s.Admin.DropCluster(cluster)
+
+	// fail when resource doesn't exist
+	if _, err := s.Admin.ListIdealStateForResource(cluster, resource); err != ErrResourceNotExists {
+		t.Error("expect ErrResourceNotExists")
+	}
+
+	// expect pass
+	if err := s.Admin.AddResource(cluster, "resource", 32, "MasterSlave"); err != nil {
+		t.Error("fail addResource")
+	}
+	if _, err := s.Admin.ListIdealStateForResource(cluster, resource); err != nil {
+		t.Error("expect OK")
+	}
+
+	// disable rosource
+	if err := s.Admin.DisableResource(cluster, resource); err != nil {
+		t.Error("expect OK")
+	}
+	// should still be okay after disabling resource
+	if _, err := s.Admin.ListIdealStateForResource(cluster, resource); err != nil {
+		t.Error("expect OK")
+	}
+}
+
 func (s *AdminTestSuite) verifyNodeExist(path string) {
 	if exists, _, err := s.Admin.zkClient.Exists(path); err != nil || !exists {
 		s.T().Error("failed verifyNodeExist")
