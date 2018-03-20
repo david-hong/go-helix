@@ -287,7 +287,7 @@ func (s *AdminTestSuite) TestListExternalViewForResource(){
 	defer s.Admin.DropCluster(cluster)
 
 	// fail when resource doesn't exist
-	if _, err := s.Admin.ListExternalViewForResource(cluster, resource); err != ErrResourceNotExists {
+	if _, err := s.Admin.ListExternalViewForResource(cluster, resource); err != ErrNodeNotExist {
 		t.Error("expect ErrResourceNotExists")
 	}
 
@@ -363,8 +363,8 @@ func (s *AdminTestSuite) TestListIdealStateForResource(){
 	defer s.Admin.DropCluster(cluster)
 
 	// fail when resource doesn't exist
-	if _, err := s.Admin.ListIdealStateForResource(cluster, resource); err != ErrResourceNotExists {
-		t.Error("expect ErrResourceNotExists")
+	if _, err := s.Admin.ListIdealStateForResource(cluster, resource); err != ErrNodeNotExist {
+		t.Error("expect ErrNodeNotExists")
 	}
 
 	// expect pass

@@ -876,7 +876,7 @@ func (adm Admin) getPathData(cluster string, path string) (string, error) {
 	// make sure path exists
 	if exists, _, err := adm.zkClient.Exists(path); !exists || err != nil {
 		if !exists {
-			return "", ErrResourceNotExists
+			return "", ErrNodeNotExist
 		}
 
 		return "", err
